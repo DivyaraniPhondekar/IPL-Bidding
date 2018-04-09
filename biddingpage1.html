@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>Bidding system</title>
+</head>
+<body>
+<h1 id="para1">Welcome to Bidding System </h1>
+
+<form action="https://0u9eu3u0ce.execute-api.us-east-1.amazonaws.com/TestStage/UserReg" method="GET">
+
+EmailId: <input type="text" name="ei"  value="amogh.tiwari@quantiphi.com" ></input></br>
+MatchId: <input type="text" name="ma1" class="log" disabled></input> <input type="hidden" name="ma" class="log"></input></br>
+BidAmt:  <input type="text" pattern="^[1-9][0-9]+$"  title="Only numbers allowed" id="ipamt" onblur="check()"></input></br>
+Team: 
+<select name="team">
+	<option value="">SELECT</option>
+ 	 <option id="team1"></option>
+  	<option id="team2"></option>
+</select><br><br>
+<input  type="submit" id="myBtn" value="Bet" />
+
+<script language="JavaScript">
+function check()
+{
+	var a = document.getElementById("ipamt").value;
+	if (a == "")
+	{
+  		alert("Enter Amount");
+	}
+}
+
+	
+
+	function addComment()
+	{
+		var parameters = location.search.substring(1).split("&");
+
+		var temp = parameters[0].split("=");
+		Matchid = unescape(temp[1]);
+
+		temp = parameters[1].split("=");
+		team1 = unescape(temp[1]);
+
+		temp = parameters[2].split("=");
+		team2 = unescape(temp[1]);
+		
+		document.getElementsByClassName("log")[0].value = Matchid;	
+		document.getElementsByClassName("log")[1].value = Matchid;
+		document.getElementById("team1").innerText = team1;
+		document.getElementById("team2").innerText = team2;
+		document.getElementById("team1").value=team1;
+		document.getElementById("team2").value=team2;		
+	}
+addComment();
+</script>
+</form>
+</body>
+</html>
