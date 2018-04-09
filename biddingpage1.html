@@ -5,11 +5,11 @@
 <body>
 <h1 id="para1">Welcome to Bidding System </h1>
 
-<form action="https://0u9eu3u0ce.execute-api.us-east-1.amazonaws.com/TestStage/UserReg" method="GET">
+<form action="https://0u9eu3u0ce.execute-api.us-east-1.amazonaws.com/LATEST/UserReg" method="GET">
 
 EmailId: <input type="text" name="ei"  value="amogh.tiwari@quantiphi.com" ></input></br>
 MatchId: <input type="text" name="ma1" class="log" disabled></input> <input type="hidden" name="ma" class="log"></input></br>
-BidAmt:  <input type="text" pattern="^[1-9][0-9]+$"  title="Only numbers allowed" id="ipamt" onblur="check()"></input></br>
+BidAmt:  <input type="text" pattern="^[1-9][0-9]+$"  name = "amt" title="Only numbers allowed" id="ipamt" onblur="check()"></input></br>
 Team: 
 <select name="team">
 	<option value="">SELECT</option>
