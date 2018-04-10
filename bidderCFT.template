@@ -1,0 +1,483 @@
+{
+
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "AWS CloudFormation sample template that contains a single Lambda function behind an API Gateway",
+
+
+
+  "Resources": {
+
+
+
+    "BiddingForm": {
+
+      "Type": "AWS::Lambda::Function",
+
+      "Properties": {
+
+        "Code": {
+
+          "ZipFile": { "Fn::Join": ["\n", [
+
+            "import boto3",
+
+            "def lambda_handler(event, context):",
+
+            "   try:",
+
+            "       EmailId = event['queryStringParameters']['ei']",
+
+            "       MatchId = int(event['queryStringParameters']['ma'])",
+
+            "       BidAmt = int(event['queryStringParameters']['amt'])",
+
+            "       Team = event['queryStringParameters']['team']",
+
+            "       dynamodb = boto3.resource('dynamodb')",
+
+            "       table = dynamodb.Table('Bidding')",
+
+            "       table.put_item(Item={'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})",
+
+            "       return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/success.html\"}}",
+
+            "   except:",
+
+            "       return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/biddingpage.html\" }}"  
+
+          
+
+          ]]}
+
+        },
+
+        "Description": "Bidding value update function",
+
+        "FunctionName": "BiddingForm",
+
+        "Handler": "index.lambda_handler",
+
+        "Role": { "Fn::GetAtt": ["LambdaExecutionRole", "Arn"]},
+
+        "Runtime": "python3.6"
+
+      }
+
+    },
+
+
+
+
+
+    "LambdaExecutionRole": {
+
+      "Type": "AWS::IAM::Role",
+
+      "Properties": {
+
+        "AssumeRolePolicyDocument": {
+
+          "Version": "2012-10-17",
+
+          "Statement": [{
+
+            "Effect": "Allow",
+
+            "Principal": { "Service": ["lambda.amazonaws.com"] },
+
+            "Action": ["sts:AssumeRole"]
+
+          }]
+
+        },
+
+    "Policies": [{
+
+          "PolicyName": "DDBwriteAccessPolicy",
+
+          "PolicyDocument": {
+
+            "Version": "2012-10-17",
+
+            "Statement": [{
+
+              "Effect": "Allow",
+
+              "Action": [
+
+                "dynamodb:BatchWriteItem",
+
+                "dynamodb:UpdateTimeToLive",
+
+                "dynamodb:PutItem",
+
+                "dynamodb:DeleteItem",
+
+                "dynamodb:RestoreTableToPointInTime",
+
+                "dynamodb:UpdateItem",
+
+                "dynamodb:CreateBackup",
+
+        "dynamodb:DeleteTable",
+
+        "dynamodb:UpdateContinuousBackups",
+
+        "dynamodb:CreateTable",
+
+        "dynamodb:RestoreTableFromBackup",
+
+        "dynamodb:DeleteBackup",
+
+        "dynamodb:UpdateTable"
+
+              ],
+
+              "Resource": ["arn:aws:dynamodb:us-east-1:488599217855:table/Bidding", 
+
+              "arn:aws:dynamodb:*:*:table/*/backup/*"]
+
+            },{
+
+      "Effect": "Allow",
+
+            "Action": ["dynamodb:TagResource","dynamodb:UntagResource",
+
+        "dynamodb:PurchaseReservedCapacityOfferings"],
+
+      "Resource": "*"  
+
+      }
+
+      ]
+
+          }
+
+        }],
+
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+
+      }
+
+    },
+
+
+
+    "bidValueApi": {
+
+      "Type": "AWS::ApiGateway::RestApi",
+
+      "Properties": {
+
+        "Name": "Bidding value update API",
+
+        "Description": "API used for bidding table update",
+
+        "FailOnWarnings": true
+
+      }
+
+    },
+
+
+
+    "LambdaPermission": {
+
+      "Type": "AWS::Lambda::Permission",
+
+      "Properties": {
+
+        "Action": "lambda:invokeFunction",
+
+        "FunctionName": {"Fn::GetAtt": ["BiddingForm", "Arn"]},
+
+        "Principal": "apigateway.amazonaws.com",
+
+        "SourceArn": {"Fn::Join": ["", ["arn:aws:execute-api:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":", {"Ref": "bidValueApi"}, "/*"]]}
+
+      }
+
+    },
+
+
+
+    "ApiGatewayCloudWatchLogsRole": {
+
+      "Type": "AWS::IAM::Role",
+
+      "Properties": {
+
+        "AssumeRolePolicyDocument": {
+
+          "Version": "2012-10-17",
+
+          "Statement": [{
+
+            "Effect": "Allow",
+
+            "Principal": { "Service": ["apigateway.amazonaws.com"] },
+
+            "Action": ["sts:AssumeRole"]
+
+          }]
+
+        },
+
+        "Policies": [{
+
+          "PolicyName": "ApiGatewayLogsPolicy",
+
+          "PolicyDocument": {
+
+            "Version": "2012-10-17",
+
+            "Statement": [{
+
+              "Effect": "Allow",
+
+              "Action": [
+
+                "logs:CreateLogGroup",
+
+                "logs:CreateLogStream",
+
+                "logs:DescribeLogGroups",
+
+                "logs:DescribeLogStreams",
+
+                "logs:PutLogEvents",
+
+                "logs:GetLogEvents",
+
+                "logs:FilterLogEvents"
+
+              ],
+
+              "Resource": "*"
+
+            }]
+
+          }
+
+        }]
+
+      }
+
+    },
+
+
+
+    "ApiGatewayAccount": {
+
+      "Type": "AWS::ApiGateway::Account",
+
+      "Properties": {
+
+        "CloudWatchRoleArn": {"Fn::GetAtt": ["ApiGatewayCloudWatchLogsRole", "Arn"] }
+
+      }
+
+    },
+
+
+
+    "BiddingValueApiStage": {
+
+      "DependsOn": ["ApiGatewayAccount"],
+
+      "Type": "AWS::ApiGateway::Stage",
+
+      "Properties": {
+
+        "DeploymentId": {"Ref": "ApiDeployment"},
+
+        "MethodSettings": [{
+
+          "DataTraceEnabled": true,
+
+          "HttpMethod": "*",
+
+          "LoggingLevel": "INFO",
+
+          "ResourcePath": "/*"
+
+        }],
+
+        "RestApiId": {"Ref": "bidValueApi"},
+
+        "StageName": "LATEST",
+
+        "Variables": {
+
+          "Amogh": "Tiwari-Test7"
+
+        }
+
+      }
+
+    },
+
+
+
+    "ApiDeployment": {
+
+      "Type": "AWS::ApiGateway::Deployment",
+
+      "DependsOn": ["UserRegRequestGET", "UserRegRequestPOST"],
+
+      "Properties": {
+
+        "RestApiId": {"Ref": "bidValueApi"},
+
+        "StageName": "TestStage"
+
+      }
+
+    },
+
+
+
+    "BiddingValueResource": {
+
+      "Type": "AWS::ApiGateway::Resource",
+
+      "Properties": {
+
+        "RestApiId": {"Ref": "bidValueApi"},
+
+        "ParentId": {"Fn::GetAtt": ["bidValueApi", "RootResourceId"]},
+
+        "PathPart": "UserReg"
+
+      }
+
+    },
+
+
+
+    "UserRegRequestGET": {
+
+      "DependsOn": "LambdaPermission",
+
+      "Type": "AWS::ApiGateway::Method",
+
+      "Properties": {
+
+        "AuthorizationType": "NONE",
+
+        "HttpMethod": "GET",
+
+        "Integration": {
+
+          "Type": "AWS_PROXY",
+
+          "IntegrationHttpMethod": "POST",
+
+          "Uri": {"Fn::Join": ["",
+
+            ["arn:aws:apigateway:", {"Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", {"Fn::GetAtt": ["BiddingForm", "Arn"]}, "/invocations"]
+
+          ]},
+
+          "IntegrationResponses": [{
+
+            "StatusCode": 200
+
+          }]
+
+        },
+
+        "RequestParameters": {
+
+          "method.request.querystring.name": false
+
+        },
+
+        "ResourceId": {"Ref": "BiddingValueResource"},
+
+        "RestApiId": {"Ref": "bidValueApi"},
+
+        "MethodResponses": [{
+
+          "StatusCode": 200
+
+        }]
+
+      }
+
+    },
+
+
+
+    "UserRegRequestPOST": {
+
+      "DependsOn": "LambdaPermission",
+
+      "Type": "AWS::ApiGateway::Method",
+
+      "Properties": {
+
+        "AuthorizationType": "NONE",
+
+        "HttpMethod": "POST",
+
+        "Integration": {
+
+          "Type": "AWS_PROXY",
+
+          "IntegrationHttpMethod": "POST",
+
+          "Uri": {"Fn::Join": ["",
+
+            ["arn:aws:apigateway:", {"Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", {"Fn::GetAtt": ["BiddingForm", "Arn"]}, "/invocations"]
+
+          ]},
+
+          "IntegrationResponses": [{
+
+            "StatusCode": 200
+
+          }]
+
+        },
+
+        "RequestParameters": {
+
+          "method.request.querystring.name": false
+
+        },
+
+        "ResourceId": {"Ref": "BiddingValueResource"},
+
+        "RestApiId": {"Ref": "bidValueApi"},
+
+        "MethodResponses": [{
+
+          "StatusCode": 200
+
+        }]
+
+      }
+
+    }
+
+
+
+  },
+
+
+
+  "Outputs": {
+
+    "RootUrl": {
+
+      "Description": "Root URL of the API gateway",
+
+      "Value": {"Fn::Join": ["", ["https://", {"Ref": "bidValueApi"}, ".execute-api.", {"Ref": "AWS::Region"}, ".amazonaws.com"]]}
+
+    }
+
+  }
+
+}
