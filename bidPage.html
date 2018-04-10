@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>Bidding system</title>
+</head>
+<body>
+<h1 id="para1">Welcome to Bidding System </h1>
+
+<form action="https://0u9eu3u0ce.execute-api.us-east-1.amazonaws.com/LATEST/UserReg" onsubmit="return check()" method="GET">
+
+EmailId: <input type="text" class="xyz" disabled></input> <input type="hidden" name="ei" class="xyz"></input></br>
+MatchId: <input type="text" class="log" disabled></input> <input type="hidden" name="ma" class="log"></input></br>
+BidAmt:  <input type="text" pattern="^[1-9]+[0-9]*$"  name = "amt" title="Only numbers allowed" id="ipamt" ></input></br>
+
+Team: 
+<select name="team">
+	<option value="">SELECT</option>
+ 	 <option id="team1"></option>
+  	<option id="team2"></option>
+</select><br><br>
+<input  type="submit" id="myBtn" value="Bet" />
+
+<script language="JavaScript">
+function check()
+{
+	var a = parseInt(document.getElementById("ipamt").value);
+	if (a == "" || a > inamt)
+	{
+  		alert("Enter valid amount");
+        return false;
+	}
+    else
+    {
+    	return true;
+    }
+    	
+}
+	
+
+	function addComment()
+	{
+		var parameters = location.search.substring(1).split("&");
+
+		var temp = parameters[0].split("=");
+		Matchid = unescape(temp[1]);
+
+		temp = parameters[1].split("=");
+		team1 = unescape(temp[1]);
+
+		temp = parameters[2].split("=");
+		team2 = unescape(temp[1]);
+
+		temp = parameters[3].split("=");
+		eid = unescape(temp[1]);
+
+		temp = parameters[4].split("=");
+		inamt = parseInt(unescape(temp[1]));
+		
+		document.getElementsByClassName("log")[0].value = Matchid;	
+		document.getElementsByClassName("log")[1].value = Matchid;
+
+		document.getElementById("team1").innerText = team1;
+		document.getElementById("team2").innerText = team2;
+		document.getElementById("team1").value=team1;
+		document.getElementById("team2").value=team2;
+
+		document.getElementsByClassName("xyz")[0].value = eid;	
+		document.getElementsByClassName("xyz")[1].value = eid;
+	}
+addComment();
+</script>
+</form>
+</body>
+</html>
+
+
+
+
+<!-- ?MATCHID=103&TEAM1=CSK&TEAM2=KKR&EID=amogh.tiwari@quantiphi.com&AMT=1000 -->
