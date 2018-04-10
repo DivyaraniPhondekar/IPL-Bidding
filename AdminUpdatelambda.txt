@@ -1,0 +1,41 @@
+
+import boto3
+from boto3.dynamodb.conditions import Key, Attr
+
+def lambda_handler(event, context):
+   MatchId =int(event['mid'])
+   dynamodb = boto3.resource('dynamodb')
+   bidtbl = dynamodb.Table('Schedule')
+   response=bidtbl.scan(FilterExpression=Attr('matchId').eq(MatchId))
+   items = response['Items']
+   team1 = items[0]['team1']
+   team2 = items[0]['team2']
+   
+   html = '''
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+<form action="https://jggucd31ia.execute-api.us-east-1.amazonaws.com/prod/WinnerTeamUpdate" method="GET">
+<center>
+<h1> Admin page </h1>
+ Team: 
+<select name="team">
+	<option value="">SELECT</option>
+ 	 <option id="team1">'''+team1+'''</option>
+  	<option id="team2">'''+team2+'''</option>
+</select>
+
+<br><br>
+<input name="mid" type="hidden" value='''+str(MatchId)+'''>
+<input  type="submit" id="myBtn" value="submit win team" />
+
+
+</center>
+</form>
+</body>
+</html> '''
+   
+   return html
