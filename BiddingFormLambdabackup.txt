@@ -1,4 +1,5 @@
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 
 def lambda_handler(event, context):
    try:
@@ -9,7 +10,17 @@ def lambda_handler(event, context):
        dynamodb = boto3.resource('dynamodb')
        table = dynamodb.Table('Bidding')
        table.put_item(Item={'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})
+       
+       
+       bidderreg = dynamodb.Table('BidderReg')
+       getT=bidderreg.scan(FilterExpression=Key('EmailID').eq(EmailId))
+       print (getT)
+       getT=getT['Items']
+       iniamount = getT[0]['Amt']
+       getT[0]['Amt']= iniamount - BidAmt
+       bidderreg.put_item(Item=getT[0])
+       
        return { "statusCode" : 302,"headers": { "Location" : "https://s3.ap-south-1.amazonaws.com/divyaranitraining/success.html"}}
    except Exception as e:
        print (e)
-       return { "statusCode" : 302,"headers": { "Location" : "https://s3.ap-south-1.amazonaws.com/divyaranitraining/biddingpage.html" }}
+       return { "statusCode" : 302,"headers": { "Location" : "https://s3.ap-south-1.amazonaws.com/divyaranitraining/bidPage.html" }}
