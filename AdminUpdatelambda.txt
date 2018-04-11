@@ -4,14 +4,20 @@ from boto3.dynamodb.conditions import Key, Attr
 
 def lambda_handler(event, context):
    mid =int(event['mid'])
+   #mid = 1088
    dynamodb = boto3.resource('dynamodb')
    bidtbl = dynamodb.Table('Schedule')
    response=bidtbl.scan(FilterExpression=Attr('matchId').eq(mid))
-   items = response['Items']
-   team1 = items[0]['team1']
-   team2 = items[0]['team2']
+   print (response)
    
-   html = '''
+   items = response['Items']
+   if(len(items) == 0):
+      html = '''Invalid Match ID <br><br> <a href= "https://s3.ap-south-1.amazonaws.com/divyaranitraining/AdminPage.html" > Go Back </a> '''
+      return html
+   else:
+      team1 = items[0]['team1']
+      team2 = items[0]['team2']
+      html = '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -38,4 +44,4 @@ def lambda_handler(event, context):
 </body>
 </html> '''
    
-   return html
+      return html
