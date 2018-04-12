@@ -1,0 +1,5 @@
+VISHAL = https://b60bj5zuv3.execute-api.us-east-1.amazonaws.com/LATEST/SchedulePage?eid=vishal.patil@quantiphi.com&amt=1000#
+Divya 
+	Admin link-----https://s3.ap-south-1.amazonaws.com/divyaranitraining/AdminPage.html
+
+	
