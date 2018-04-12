@@ -8,8 +8,6 @@
 
   "Resources": {
 
-
-
     "BiddingForm": {
 
       "Type": "AWS::Lambda::Function",
@@ -20,65 +18,44 @@
 
           "ZipFile": { "Fn::Join": ["\n", [
 
-           "import boto3",
+          "import boto3",
+          "from boto3.dynamodb.conditions import Key, Attr",
 
-           "from boto3.dynamodb.conditions import Key, Attr",
-
-           "def lambda_handler(event, context):",
-
-           "   try:",        
-
-           "      EmailId = event['queryStringParameters']['ei']",
-
-           "      MatchId = int(event['queryStringParameters']['ma'])",
-
-           "      BidAmt = int(event['queryStringParameters']['amt'])",
-
-           "      Team = event['queryStringParameters']['team']",
-
-           "      dynamodb = boto3.resource('dynamodb')",
-
-           "      table = dynamodb.Table('Bidding')",
-                 
-           "      # Finding max sr no ",
-
-           "      bidding = table.scan()",
-
-           "      bidding = bidding['Items']",
-
-           "      srlist = []",
-
-           "      for i in range(len(bidding)):",
-
-           "         srlist.append(int(bidding[i]['SrNo']))",
-
-           "      maxsr = max(srlist)",
-                  
-           "      table.put_item(Item={'SrNo':maxsr + 1, 'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})",
-                  
-           "      # Update balance",
-
-           "      bidderreg = dynamodb.Table('BidderReg')",
-
-           "      getT=bidderreg.scan(FilterExpression=Key('EmailID').eq(EmailId))",
-
-           "      print (getT)",
-
-           "      getT=getT['Items']",
-
-           "      iniamount = getT[0]['Amt']",
-
-           "      getT[0]['Amt']= iniamount - BidAmt",
-
-           "      bidderreg.put_item(Item=getT[0])",
-                  
-           "      return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/success.html\"}}",
-
-           "   except Exception as e:",
-
-           "      print (e)",
-
-           "      return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/bidPage.html\" }}"
+          "def lambda_handler(event, context):",
+          "   try:",
+          "      EmailId = event['queryStringParameters']['ei']",
+          "      MatchId = int(event['queryStringParameters']['ma'])",
+          "      BidAmt = int(event['queryStringParameters']['amt'])",
+          "      Team = event['queryStringParameters']['team']",
+          "      dynamodb = boto3.resource('dynamodb')",
+          "      table = dynamodb.Table('Bidding')",
+          "      # Finding max sr no ",
+          "      bidding = table.scan()",
+          "      bidding = bidding['Items']",
+          "      ",
+          "      if (len(bidding) == 0):",
+          "         table.put_item(Item={'SrNo':1, 'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})",
+          "         ",
+          "      else:",
+          "         srlist = []",
+          "         for i in range(len(bidding)):",
+          "            srlist.append(int(bidding[i]['SrNo']))",
+          "         maxsr = max(srlist)",
+          "         table.put_item(Item={'SrNo':maxsr + 1, 'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})",
+          "      ",
+          "      # Update balance",
+          "      bidderreg = dynamodb.Table('BidderReg')",
+          "      getT=bidderreg.scan(FilterExpression=Key('EmailID').eq(EmailId))",
+          "      print (getT)",
+          "      getT=getT['Items']",
+          "      iniamount = getT[0]['Amt']",
+          "      getT[0]['Amt']= iniamount - BidAmt",
+          "      bidderreg.put_item(Item=getT[0])",
+          "      ",
+          "      return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/success.html\"}}",
+          "   except Exception as e:",
+          "      print (e)",
+          "      return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/bidPage.html\" }}"
           ]]}
 
         },
