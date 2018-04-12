@@ -20,51 +20,65 @@
 
           "ZipFile": { "Fn::Join": ["\n", [
 
-            "import boto3",
-            "from boto3.dynamodb.conditions import Key, Attr",
+           "import boto3",
 
-            "def lambda_handler(event, context):",
+           "from boto3.dynamodb.conditions import Key, Attr",
 
-            "   try:",
+           "def lambda_handler(event, context):",
 
-            "       EmailId = event['queryStringParameters']['ei']",
+           "   try:",        
 
-            "       MatchId = int(event['queryStringParameters']['ma'])",
+           "      EmailId = event['queryStringParameters']['ei']",
 
-            "       BidAmt = int(event['queryStringParameters']['amt'])",
+           "      MatchId = int(event['queryStringParameters']['ma'])",
 
-            "       Team = event['queryStringParameters']['team']",
+           "      BidAmt = int(event['queryStringParameters']['amt'])",
 
-            "       dynamodb = boto3.resource('dynamodb')",
+           "      Team = event['queryStringParameters']['team']",
 
-            "       table = dynamodb.Table('Bidding')",
+           "      dynamodb = boto3.resource('dynamodb')",
 
-            "       table.put_item(Item={'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})",
+           "      table = dynamodb.Table('Bidding')",
+                 
+           "      # Finding max sr no ",
 
-            "       bidderreg = dynamodb.Table('BidderReg')",
+           "      bidding = table.scan()",
 
-            "       getT=bidderreg.scan(FilterExpression=Key('EmailID').eq(EmailId))",
+           "      bidding = bidding['Items']",
 
-            "       print (getT)",
+           "      srlist = []",
 
-            "       getT=getT['Items']",
+           "      for i in range(len(bidding)):",
 
-            "       iniamount = getT[0]['Amt']",
+           "         srlist.append(int(bidding[i]['SrNo']))",
 
-            "       getT[0]['Amt']= iniamount - BidAmt",
+           "      maxsr = max(srlist)",
+                  
+           "      table.put_item(Item={'SrNo':maxsr + 1, 'emailId': EmailId,'matchId': MatchId, 'bidAmt':BidAmt, 'team':Team, 'winner':'NA'})",
+                  
+           "      # Update balance",
 
-            "       bidderreg.put_item(Item=getT[0])",
+           "      bidderreg = dynamodb.Table('BidderReg')",
 
-            "       return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/success.html\"}}",
+           "      getT=bidderreg.scan(FilterExpression=Key('EmailID').eq(EmailId))",
 
-            "   except Exception as e:",
+           "      print (getT)",
 
-            "       print (e)",
+           "      getT=getT['Items']",
 
-            "       return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/bidPage.html\" }}"  
+           "      iniamount = getT[0]['Amt']",
 
-          
+           "      getT[0]['Amt']= iniamount - BidAmt",
 
+           "      bidderreg.put_item(Item=getT[0])",
+                  
+           "      return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/success.html\"}}",
+
+           "   except Exception as e:",
+
+           "      print (e)",
+
+           "      return { \"statusCode\" : 302,\"headers\": { \"Location\" : \"https://s3.ap-south-1.amazonaws.com/divyaranitraining/bidPage.html\" }}"
           ]]}
 
         },
@@ -327,7 +341,7 @@
 
         "Variables": {
 
-          "Amogh": "Tiwari-Test7"
+          "Divya": "Test"
 
         }
 
